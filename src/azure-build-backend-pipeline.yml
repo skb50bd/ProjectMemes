@@ -1,0 +1,23 @@
+name: 'Server-Build'
+
+trigger:
+- master
+
+pr:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '5.0.100-preview.7.20366.6'
+    includePreviewVersions: true
+  displayName: 'Select .NET version'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: '**/*.csproj'
+  displayName: 'Build'
