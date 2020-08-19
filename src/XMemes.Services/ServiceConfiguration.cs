@@ -19,10 +19,6 @@ namespace XMemes.Services
             services.AddLogging(builder => builder.AddSerilog(log));
 
             services.ConfigureData();
-
-            // Add Services Here
-            services.AddSingleton<App>();
-
             return services;
         }
 

@@ -9,6 +9,9 @@ pr:
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+  buildConfiguration: 'Release'
+
 steps:
 - task: UseDotNet@2
   inputs:
@@ -16,9 +19,17 @@ steps:
     version: '5.0.100-preview.7.20366.6'
     includePreviewVersions: true
   displayName: 'Select .NET version'
-
+  
 - task: DotNetCoreCLI@2
   inputs:
-    command: 'build'
-    projects: '**/XMemes.Services.csproj'
-  displayName: 'Build'
+    command: 'publish'
+    projects: '**/XMemes.Api.csproj'
+    arguments: '--configuration $(buildConfiguration) -r win-x64 -o $(Build.ArtifactStagingDirectory)'
+  displayName: 'Publish'
+  
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+  displayName: 'Archive Files'

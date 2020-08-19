@@ -1,9 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <OutputType>exe</OutputType>
-    <!--<TargetFramework>netstandard2.1</TargetFramework>-->
+    <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -20,12 +18,6 @@
   <ItemGroup>
     <ProjectReference Include="..\XMemes.Data\XMemes.Data.csproj" />
     <ProjectReference Include="..\XMemes.Models\XMemes.Models.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
