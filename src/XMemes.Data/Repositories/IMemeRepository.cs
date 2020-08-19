@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
-using LiteDB;
+﻿using LiteDB;
+
 using XMemes.Models.Domain;
+using XMemes.Models.Paging;
 
 namespace XMemes.Data.Repositories
 {
@@ -9,6 +10,6 @@ namespace XMemes.Data.Repositories
         Meme? GetById(ObjectId id, bool includeAll = false);
         Meme? GetLatest();
         int LikeMeme(ObjectId memeId, ObjectId memerId);
-        IList<Meme> GetPopularMemes(int start = 0, int count = -1);
+        IPagedList<Meme> GetPopularMemes(int pageIndex, int pageSize);
     }
 }

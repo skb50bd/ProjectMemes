@@ -3,20 +3,21 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
-using System.Collections.Generic;
 using System.Linq;
-
+using Microsoft.Extensions.Logging;
 using XMemes.Models;
 using XMemes.Models.Domain;
+using XMemes.Models.Paging;
 
 namespace XMemes.Data.Repositories
 {
     public class MemeRepository : Repository<Meme>, IMemeRepository
     {
         public MemeRepository(
+            ILogger<MemeRepository> logger,
             IConfiguration config,
-            IOptionsMonitor<BanglaMemesOptions> opts)
-        : base(config, opts) { }
+            IOptionsMonitor<Settings> settingsMonitor)
+        : base(logger, config, settingsMonitor) { }
 
         public Meme? GetById(ObjectId id, bool includeAll = false)
         {
@@ -55,20 +56,17 @@ namespace XMemes.Data.Repositories
             return meme.Likers.Count;
         }
 
-        public IList<Meme> GetPopularMemes(int start = 0, int count = -1)
+        public IPagedList<Meme> GetPopularMemes(int pageIndex = 0, int pageSize = -1)
         {
-            if (count == -1)
-                count = _opts.PopularityThreshHold;
+            if (pageSize == -1)
+                pageSize = Settings.PageSize;
 
             var query =
-                Query.GTE("$COUNT($.Likers[*])", _opts.PopularityThreshHold);
+                Query.GTE("$COUNT($.Likers[*])", Settings.PopularityThreshHold);
 
-            var memes =
-                _repo.Query<Meme>(query)
-                    .Skip(start)
-                    .Limit(count);
+            var memes = Repo.Query<Meme>(query);
 
-            return memes?.ToList() ?? new List<Meme>();
+            return memes.ToPagedList(pageIndex, pageSize);
         }
     }
 }

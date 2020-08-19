@@ -6,35 +6,40 @@ using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using XMemes.Models.Paging;
 
 namespace XMemes.Data.Repositories
 {
     public class Repository<T>: IRepository<T> where T: BaseEntity {
-        protected readonly ILiteRepository _repo;
-        protected readonly BanglaMemesOptions _opts;
+        protected readonly ILiteRepository Repo;
+        protected readonly Settings Settings;
+        protected readonly ILogger<Repository<T>> Logger;
 
         protected ILiteCollection<Meme> Memes =>
-            _repo.Database.GetCollection<Meme>();
+            Repo.Database.GetCollection<Meme>();
 
         protected ILiteCollection<Memer> Memers =>
-            _repo.Database.GetCollection<Memer>();
+            Repo.Database.GetCollection<Memer>();
 
         protected ILiteCollection<Tag> Tags =>
-            _repo.Database.GetCollection<Tag>();
+            Repo.Database.GetCollection<Tag>();
 
         protected ILiteCollection<Template> Templates =>
-            _repo.Database.GetCollection<Template>();
+            Repo.Database.GetCollection<Template>();
 
         public Repository(
+            ILogger<Repository<T>> logger,
             IConfiguration config, 
-            IOptionsMonitor<BanglaMemesOptions> opts)
+            IOptionsMonitor<Settings> settingsMonitor)
         {
-            _opts = opts.CurrentValue;
+            Logger = logger;
+            Settings = settingsMonitor.CurrentValue;
             
             var mapper = MapEntities(BsonMapper.Global);
 
-            _repo = new LiteRepository(
+            Repo = new LiteRepository(
                 config.GetConnectionString("LiteDB"),
                 mapper);
 
@@ -43,7 +48,7 @@ namespace XMemes.Data.Repositories
 
         private void EnsureIndices()
         {
-            _repo.EnsureIndex<Meme>(nameof(Meme.Name), $"LOWER($.{nameof(Meme.Name)})");
+            Repo.EnsureIndex<Meme>(nameof(Meme.Name), $"LOWER($.{nameof(Meme.Name)})");
             Memes.EnsureIndex(m => m.Hash);
             Memes.EnsureIndex(m => m.Original);
             Memes.EnsureIndex(m => m.Nsfw);
@@ -82,34 +87,36 @@ namespace XMemes.Data.Repositories
         }
 
         public virtual T? GetById(ObjectId id) {
-            var item = _repo.Database.GetCollection<T>().FindById(id);
+            var item = Repo.Database.GetCollection<T>().FindById(id);
             return item;
         }
 
-        public virtual IList<T> GetAll()
-        {
-            return _repo.Database.GetCollection<T>().FindAll().ToList();
-        }
+        public virtual IList<T> GetAll() => 
+            Repo.Database
+                .GetCollection<T>()
+                .FindAll()
+                .ToList();
 
-        public virtual IList<T> Get(Expression<Func<T, bool>> predicate)
-        {
-            return _repo.Database.GetCollection<T>().Find(predicate).ToList();
-        }
-        
+        public virtual IPagedList<T> Get(
+            Expression<Func<T, bool>> predicate, 
+            int pageIndex, 
+            int pageSize) => 
+            Repo.Query<T>()
+                .Where(predicate)
+                .ToPagedList(pageIndex, pageSize);
+
         public virtual bool Insert(T item)
         {
-            var result = _repo.Database.GetCollection<T>().Insert(item);
+            var result = Repo.Database.GetCollection<T>().Insert(item);
             return !(result is null);
         }
         
         public virtual bool Update(T item) =>
-            _repo.Database.GetCollection<T>().Update(item);
+            Repo.Database.GetCollection<T>().Update(item);
             
         public virtual bool Delete(T item) =>
-            _repo.Database.GetCollection<T>().Delete(item.Id);
+            Repo.Database.GetCollection<T>().Delete(item.Id);
 
-        public void Dispose() {
-            _repo.Dispose();
-        }
+        public void Dispose() => Repo.Dispose();
     }
 }
