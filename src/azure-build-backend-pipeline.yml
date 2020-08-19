@@ -16,8 +16,9 @@ steps:
     version: '5.0.100-preview.7.20366.6'
     includePreviewVersions: true
   displayName: 'Select .NET version'
+
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
-    projects: '**/*.csproj'
+    projects: '**/XMemes.Services.csproj'
   displayName: 'Build'
