@@ -23,4 +23,4 @@
 
 1. Clone the repository.
 2. Open command line (i.e. `cmd` / `powershell` / `terminal`)
-3. `cd` into `src/BACKEND/` and execute `dotnet run`
+3. `cd` into `src/XMemes.Api/` and execute `dotnet run`
