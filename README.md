@@ -16,7 +16,7 @@
 
 ### Software requirements
 
-1. `.NET SDK 5.0.preview7` or later
+1. `.NET SDK 3.1.401` or later
 2. `npm` / `yarn`
 
 ### Steps

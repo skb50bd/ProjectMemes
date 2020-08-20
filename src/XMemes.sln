@@ -12,6 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8B0E9D3C-8260-440C-A3E5-FD034DB54767}"
 	ProjectSection(SolutionItems) = preProject
 		azure-build-backend-pipeline.yml = azure-build-backend-pipeline.yml
+		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XMemes.Api", "XMemes.Api\XMemes.Api.csproj", "{22F3A783-8B12-4B21-ADB6-C4FA289CA49B}"
