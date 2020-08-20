@@ -1,20 +1,25 @@
 trigger:
-- master
+  branches:
+    include:
+    - master
   paths:
     include:
     - src/
     exclude:
-    - src/XMemes.FE
-    - src/XMemes.Fable
+    - src/XMemes.FE/
+    - 'src/XMemes.Fable/'
 
 pr:
-- master
+  branches:
+    include:
+    - master
   paths:
     include:
     - src/
     exclude:
-    - src/XMemes.FE
-    - src/XMemes.Fable
+    - src/XMemes.FE/
+    - src/XMemes.Fable/
+
 
 pool:
   vmImage: 'ubuntu-latest'
