@@ -1,17 +1,27 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Driver;
 using XMemes.Data.Repositories;
 using XMemes.Models.Domain;
+using Tag = XMemes.Models.Domain.Tag;
 
 namespace XMemes.Data
 {
     public static class DataConfiguration
     {
-        public static IServiceCollection ConfigureData(this IServiceCollection services)
+        public static IServiceCollection ConfigureData(
+            this IServiceCollection services   ,
+            IConfiguration config)
         {
-            services.AddTransient<IMemeRepository, MemeRepository>();
-            services.AddTransient<IRepository<Memer>, Repository<Memer>>();
-            services.AddTransient<IRepository<Tag>, Repository<Tag>>();
-            services.AddTransient<IRepository<Template>, Repository<Template>>();
+            var connectionString = config.GetConnectionString("MongoDB");
+            var client = new MongoClient(connectionString);
+            services.AddSingleton<IMongoClient>(client);
+
+            services.AddTransient<IMemeRepository, MongoMemeRepository>();
+            services.AddTransient<IMemerRepository, MongoMemerRepository>();
+            services.AddTransient<IRepository<Tag>, MongoTagRepository>();
+            services.AddTransient<IRepository<Template>, MongoTemplateRepository>();
+            services.AddTransient<IFileRepository, AzureBlobFileRepository>();
 
             return services;
         }

@@ -1,16 +1,14 @@
-using LiteDB;
+using System;
 
-namespace XMemes.Models.Domain {
-    public abstract class BaseEntity {
-        public ObjectId Id { get; set; }
-
-        protected BaseEntity()
-        {
-            Id = ObjectId.NewObjectId();
-        }
+namespace XMemes.Models.Domain
+{
+    public abstract class BaseEntity
+    {
+        public Guid Id { get; set; } = Guid.NewGuid();
     }
 
-    public abstract class TrackedEntity: BaseEntity {
+    public class TrackedEntity : BaseEntity
+    {
         public bool Deleted { get; set; }
     }
 }

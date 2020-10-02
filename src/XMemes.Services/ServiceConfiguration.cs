@@ -1,24 +1,41 @@
 ﻿using System;
 using System.IO;
-
+using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using Serilog;
 
 using XMemes.Data;
+using XMemes.Models;
+using XMemes.Models.InputModels;
+using XMemes.Models.ViewModels;
+using XMemes.Services.Abstractions;
+using XMemes.Services.Implementations;
 
 namespace XMemes.Services
 {
     public static class ServiceConfiguration
     {
         public static IServiceCollection ConfigureServices(
-            this IServiceCollection services)
+            this IServiceCollection services,
+            IConfiguration config)
         {
             var log = CreateLogger();
             services.AddLogging(builder => builder.AddSerilog(log));
 
-            services.ConfigureData();
+            var conf = (Action<IMapperConfigurationExpression>) MappingConfig.Config;
+            services.AddAutoMapper(conf);
+
+            services.ConfigureData(config);
+
+            services.AddTransient<IService<TagViewModel, TagInput>, TagService>();
+            services.AddTransient<IMemerService, MemerService>();
+
+            services.AddTransient<IImageService, ImageService>();
+
+            services.Configure<Settings>(config.GetSection(nameof(Settings)));
+            
             return services;
         }
 

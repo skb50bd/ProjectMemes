@@ -3,28 +3,17 @@ using System.Collections.Generic;
 
 namespace XMemes.Models.Domain
 {
-    public class Meme: TrackedEntity
+    public class Meme : TrackedEntity
     {
         public string? Name { get; set; }
-
-        //public int MemerId { get; set; }
-        public Memer? Memer { get; set; }
-
-        //public int TemplateId { get; set; }
-        public Template? Template { get; set; }
-
-        //public List<int>? TagIds { get; set; }
-        public List<Tag> Tags { get; set; } = new List<Tag>();
-
+        public Guid MemerId { get; set; }
+        public Guid TemplateId { get; set; }
+        public IList<Guid> TagIds { get; set; } = new List<Guid>();
         public string? Description { get; set; }
         public DateTimeOffset SubmittedAt { get; set; }
-
-        //public List<int>? LikersIds { get; set; }
-        public List<Memer> Likers { get; set; } = new List<Memer>();
-
+        public IList<Guid> LikerIds { get; set; } = new List<Guid>();
         public bool Nsfw { get; set; }
         public bool Original { get; set; }
-        public string? Hash { get; set; }
-        public string? ImageLocation { get; set; }
+        public string? ImageId { get; set; }
     }
 }
