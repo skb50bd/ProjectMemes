@@ -3,6 +3,7 @@
     public class MemerViewModel : BaseViewModel
     {
         public string? Name { get; set; }
+        public string? Username { get; set; }
         public string? Bio { get; set; }
         public string? ImageId { get; set; }
         public int TotalLikes { get; set; }

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
+using XMemes.Models.Operations;
 using XMemes.Models.Paging;
 
 namespace XMemes.Services.Abstractions
 {
-    public interface IService<TViewModel, in TInput>
+    public interface IService<TViewModel, in TInput> where TViewModel: class
     {
         Task<IPagedList<TViewModel>> GetAll(
             int pageIndex = 0,
@@ -17,9 +18,9 @@ namespace XMemes.Services.Abstractions
             int pageIndex = 0,
             int pageSize = 20);
 
-        Task<bool> Insert(TInput model);
-        Task<bool> Update(TInput model);
-        Task<bool> Delete(Guid id);
+        Task<Outcome<TViewModel>> Insert(TInput model);
+        Task<Outcome<TViewModel>> Update(TInput model);
+        Task<Outcome<TViewModel>> Delete(Guid id);
         Task<bool> Exists(Guid id);
     }
 }

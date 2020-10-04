@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 using XMemes.Models;
 using XMemes.Models.Domain;
+using XMemes.Models.Operations;
 using XMemes.Models.Paging;
 
 namespace XMemes.Data.Repositories
@@ -25,7 +26,7 @@ namespace XMemes.Data.Repositories
             IMongoClient client)
         : base(logger, config, settings, client) { }
 
-        public async Task<bool> ToggleLike(Guid memeId, Guid likerId)
+        public async Task<Outcome<object>> ToggleLike(Guid memeId, Guid likerId)
         {
             try
             {
@@ -33,11 +34,11 @@ namespace XMemes.Data.Repositories
 
                 var memeFilter = Builders<Meme>.Filter.Where(_ => _.Id == memeId);
 
-                var memerId =
-                    await Memes.AsQueryable()
-                        .Where(_ => _.Id == memeId)
-                        .Select(_ => _.MemerId)
-                        .FirstOrDefaultAsync();
+                //var memerId =
+                //    await Memes.AsQueryable()
+                //        .Where(_ => _.Id == memeId)
+                //        .Select(_ => _.MemerId)
+                //        .FirstOrDefaultAsync();
 
                 var isLikedFilter =
                     Builders<Meme>.Filter.And(
@@ -71,18 +72,19 @@ namespace XMemes.Data.Repositories
 
                 return
                     unlikeMemeResult.IsAcknowledged
-                    && unlikeMemeResult.IsAcknowledged
                     && likeMemeResult.IsAcknowledged
                     //&& likeMemerResult.IsAcknowledged
                     && unlikeMemeResult.ModifiedCount
-                        + likeMemeResult.ModifiedCount == 2;
+                    + likeMemeResult.ModifiedCount > 1
                         //+ unlikeMemerResult.ModifiedCount
                         //+ likeMemerResult.ModifiedCount == 2;
+                        ? Outcome<object>.FromSuccess(true)
+                        : throw new Exception($"Toggling like on meme: {memeId} failed for liker: {likerId}");
             }
             catch (Exception e)
             {
                 Logger.LogError("Unexpected error occurred updating like count.", e);
-                return false;
+                return Outcome<object>.FromError("Error toggling like.", e);
             }
         }
 

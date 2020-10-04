@@ -16,8 +16,8 @@ namespace XMemes.Services
     public class PagedListConverter<TIn, TOut> : ITypeConverter<IPagedList<TIn>, IPagedList<TOut>>
     {
         public IPagedList<TOut> Convert(
-            IPagedList<TIn> source, 
-            IPagedList<TOut> _, 
+            IPagedList<TIn> source,
+            IPagedList<TOut> _,
             ResolutionContext context)
         {
             var mapped = context.Mapper.Map<List<TOut>>(source);
@@ -25,15 +25,17 @@ namespace XMemes.Services
         }
     }
 
-    public static class MappingConfig {
-        public static void Config(IMapperConfigurationExpression config) {
+    public static class MappingConfig
+    {
+        public static void Config(IMapperConfigurationExpression config)
+        {
             config.CreateMap<string?, string?>()
                 .ConvertUsing(s => s ?? string.Empty);
 
             config.CreateMap<string?, string>()
                 .ConvertUsing(s => s ?? string.Empty);
-            
-            config.CreateMap<string, string?>() 
+
+            config.CreateMap<string, string?>()
                 .ConvertUsing(s => string.IsNullOrWhiteSpace(s) ? string.Empty : s);
 
             config.CreateMap<string, Guid>()
@@ -41,7 +43,7 @@ namespace XMemes.Services
                     string.IsNullOrWhiteSpace(s) ? Guid.NewGuid() : Guid.Parse(s));
 
             config.CreateMap<string?, Guid>()
-                .ConvertUsing(s => 
+                .ConvertUsing(s =>
                     string.IsNullOrWhiteSpace(s) ? Guid.NewGuid() : Guid.Parse(s));
 
             config.CreateMap<Guid, string?>()
@@ -51,7 +53,7 @@ namespace XMemes.Services
                 .ConvertUsing(g => g.ToString());
 
             #region Tag
-            
+
             config.CreateMap<TagInput, Tag>();
             config.CreateMap<Tag, TagInput>();
             config.CreateMap<Tag, TagViewModel>();
@@ -70,12 +72,25 @@ namespace XMemes.Services
 
             #endregion
 
+            #region Meme
+
             config.CreateMap<MemeInput, Meme>();
             config.CreateMap<Meme, MemeInput>();
+            config.CreateMap<Meme, MemeViewModel>();
+            config.CreateMap<IPagedList<Meme>, IPagedList<MemeViewModel>>()
+                .ConvertUsing(new PagedListConverter<Meme, MemeViewModel>());
+
+            #endregion
+            
+            #region Template
+
             config.CreateMap<TemplateInput, Template>();
             config.CreateMap<Template, TemplateInput>();
+            config.CreateMap<Template, TemplateViewModel>();
+            config.CreateMap<IPagedList<Template>, IPagedList<TemplateViewModel>>()
+                .ConvertUsing(new PagedListConverter<Template, TemplateViewModel>());
 
-
+            #endregion
         }
     }
 }

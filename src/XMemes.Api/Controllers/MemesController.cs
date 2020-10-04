@@ -2,39 +2,38 @@
 using Microsoft.Extensions.Logging;
 
 using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
-using XMemes.Models.Domain;
+using XMemes.Models.InputModels;
+using XMemes.Models.ViewModels;
+using XMemes.Services.Abstractions;
 
 namespace XMemes.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class MemesController : ControllerBase
+    public class MemesController : XMemesControllerBase<MemeViewModel, MemeInput>
     {
-        private readonly ILogger<MemesController> _logger;
-
-        public MemesController(ILogger<MemesController> logger)
+        private readonly IMemeService _memeService;
+        public MemesController(
+            ILogger<MemesController> logger,
+            IMemeService service, IMemeService memeService)
+            : base(logger, service)
         {
-            _logger = logger;
+            _memeService = memeService;
         }
 
-        [HttpGet]
-        public IEnumerable<Meme> Get()
+        [HttpPost("Like")]
+        public async Task<ActionResult<MemeViewModel>> ToggleLike(string memeId, string likerId)
         {
-            return new[]
-            {
-                new Meme
-                {
-                    Name = "Latest Jinish",
-                    SubmittedAt = DateTimeOffset.UtcNow
-                },
-                new Meme
-                {
-                    Name = "Tor ki dor lagbo?",
-                    SubmittedAt = DateTimeOffset.UtcNow.AddDays(-1.4)
-                }
-            };
+            var memeIdIsValid = Guid.TryParse(memeId, out var memeIdGuid);
+            var likerIdIsValid = Guid.TryParse(likerId, out var likerIdGuid);
+
+            if (!memeIdIsValid || !likerIdIsValid) return NotFound();
+
+            var outcome = await _memeService.ToggleLike(memeIdGuid, likerIdGuid);
+            if (outcome.IsSuccess) return outcome.Value!;
+            else return BadRequest(outcome.Message);
         }
     }
 }

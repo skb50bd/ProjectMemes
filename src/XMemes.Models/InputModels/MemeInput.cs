@@ -6,6 +6,6 @@
         public string[] Tags { get; set; } = new string[0];
         public bool Nsfw { get; set; }
         public bool Original { get; set; }
-        public string ImageId { get; set; } = string.Empty;
+        public string? ImageId { get; set; }
     }
 }

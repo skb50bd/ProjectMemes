@@ -5,13 +5,18 @@ using System.Threading.Tasks;
 
 using XMemes.Data.Repositories;
 using XMemes.Models.Domain;
+using XMemes.Models.InputModels;
+using XMemes.Models.Operations;
 using XMemes.Models.Paging;
 using XMemes.Services.Abstractions;
 
 namespace XMemes.Services.Implementations
 {
     public abstract class ServiceBase<TData, TViewModel, TInput> 
-        : IService<TViewModel, TInput> where TData : TrackedEntity
+        : IService<TViewModel, TInput> 
+        where TData : TrackedEntity
+        where TViewModel : class
+        where TInput: BaseInput
     {
         protected readonly IRepository<TData> Repository;
         protected readonly IMapper Mapper;
@@ -44,23 +49,37 @@ namespace XMemes.Services.Implementations
             return Mapper.Map<IPagedList<TViewModel>>(dataModels);
         }
 
-        public virtual async Task<bool> Insert(TInput model)
+        public virtual async Task<Outcome<TViewModel>> Insert(TInput model)
         {
             var dataModel = Mapper.Map<TData>(model);
-            return await Repository.Insert(dataModel);
+            var outcome = await Repository.Insert(dataModel);
+            return outcome.IsSuccess 
+                ? Outcome<TViewModel>.FromSuccess(Mapper.Map<TViewModel>(outcome.Value)) 
+                : Outcome<TViewModel>.FromError(outcome);
         }
 
-        public virtual async Task<bool> Update(TInput model)
+        public virtual async Task<Outcome<TViewModel>> Update(TInput model)
         {
+            var isValidId = Guid.TryParse(model.Id, out var id);
+            if (!isValidId)
+                return Outcome<TViewModel>.FromError("Id is not a valid guid");
+
             var dataModel = Mapper.Map<TData>(model);
-            return await Repository.Update(dataModel);
+            var outcome = await Repository.Update(dataModel);
+            return outcome.IsSuccess 
+                ? Outcome<TViewModel>.FromSuccess(Mapper.Map<TViewModel>(outcome.Value)) 
+                : Outcome<TViewModel>.FromError(outcome);
         }
 
-        public virtual async Task<bool> Delete(Guid id)
+        public virtual async Task<Outcome<TViewModel>> Delete(Guid id)
         {
             var dataModel = await Repository.GetById(id);
-            if (dataModel is null) return false;
-            return await Repository.Delete(dataModel);
+            if (dataModel is null) 
+                return Outcome<TViewModel>.FromError("Not Found.");
+            var outcome = await Repository.Delete(dataModel);
+            return outcome.IsSuccess
+                ? Outcome<TViewModel>.FromSuccess(Mapper.Map<TViewModel>(dataModel))
+                : Outcome<TViewModel>.FromError($"Error deleting item. Id: {id}");
         }
 
         public virtual async Task<bool> Exists(Guid id) =>

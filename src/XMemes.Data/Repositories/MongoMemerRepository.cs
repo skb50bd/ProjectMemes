@@ -10,6 +10,7 @@ using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using XMemes.Models;
 using XMemes.Models.Domain;
+using XMemes.Models.Operations;
 using XMemes.Models.Paging;
 using XMemes.Models.Utils;
 
@@ -40,7 +41,7 @@ namespace XMemes.Data.Repositories
             return await memersFind.ToPagedList(pageIndex, pageSize);
         }
 
-        public async Task<bool> IsUsernameAvailable(string username)
+        public async Task<Outcome<object>> IsUsernameAvailable(string username)
         {
             username = $@"\b{username}\b";
             var regexFilter = new Regex(username, RegexOptions.IgnoreCase);
@@ -48,7 +49,9 @@ namespace XMemes.Data.Repositories
 
             var usernameFilter = Builders<Memer>.Filter.Regex(_ => _.Username, bsonRegex);
             var count = await Memers.CountDocumentsAsync(usernameFilter);
-            return count == 0;
+            return count == 0
+                ? Outcome<object>.FromSuccess(true, "The username is available.") 
+                : Outcome<object>.FromSuccess(false, "The username is not available.");
         }
     }
 }

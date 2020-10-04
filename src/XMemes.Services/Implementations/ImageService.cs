@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using XMemes.Data.Repositories;
+using XMemes.Models.Operations;
 using XMemes.Services.Abstractions;
 
 namespace XMemes.Services.Implementations
@@ -15,16 +16,16 @@ namespace XMemes.Services.Implementations
             _fileRepository = fileRepository;
         }
 
-        public Task<string?> GetUrl(string filename) =>
+        public Task<Outcome<string>> GetUrl(string filename) =>
             _fileRepository.GetUrl(filename);
 
-        public async Task<string?> Upload(string filename, Stream fileStream) => 
+        public async Task<Outcome<string>> Upload(string filename, Stream fileStream) => 
             await _fileRepository.Upload(filename, fileStream);
 
-        public async Task<string?> Upload(string filename, byte[] bytes) =>
+        public async Task<Outcome<string>> Upload(string filename, byte[] bytes) =>
             await _fileRepository.Upload(filename, bytes);
 
-        public async Task<string?> Upload(string filename, string uploadFilePath) =>
+        public async Task<Outcome<string>> Upload(string filename, string uploadFilePath) =>
             await _fileRepository.Upload(filename, uploadFilePath);
 
         public async Task<FileInfo?> Download(string filename) =>
@@ -36,7 +37,7 @@ namespace XMemes.Services.Implementations
         public async Task<IList<string>> GetAllFilenames() =>
             await _fileRepository.GetAllFilenames();
 
-        public async Task<bool> Delete(string filename) =>
+        public async Task<Outcome<object>> Delete(string filename) =>
             await _fileRepository.Delete(filename);
     }
 }

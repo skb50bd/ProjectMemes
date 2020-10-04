@@ -31,6 +31,7 @@ namespace XMemes.Services
 
             services.AddTransient<IService<TagViewModel, TagInput>, TagService>();
             services.AddTransient<IMemerService, MemerService>();
+            services.AddTransient<IMemeService, MemeService>();
 
             services.AddTransient<IImageService, ImageService>();
 

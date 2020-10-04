@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using XMemes.Models.Operations;
 
 namespace XMemes.Data.Repositories
 {
@@ -22,7 +23,7 @@ namespace XMemes.Data.Repositories
             _containerClient = new BlobContainerClient(connectionString, "images");
         }
 
-        public async Task<string?> GetUrl(string filename)
+        public async Task<Outcome<string>> GetUrl(string filename)
         {
             try
             {
@@ -31,16 +32,17 @@ namespace XMemes.Data.Repositories
                 if (exists is null || !exists.Value) return null;
                 
                 var url = blobClient.Uri.AbsoluteUri;
-                return url;
+                return Outcome<string>.FromSuccess(url);
             }
             catch (Exception e)
             {
-                _logger.LogError($"Could not find blob: {filename}", e);
-                return null;
+                var errorMessage = $"Could not find blob: {filename}";
+                _logger.LogError(errorMessage, e);
+                return Outcome<string>.FromError(errorMessage, e);
             }
         }
         
-        public async Task<string?> Upload(string filename, Stream fileStream)
+        public async Task<Outcome<string>> Upload(string filename, Stream fileStream)
         {
             try
             {
@@ -49,19 +51,24 @@ namespace XMemes.Data.Repositories
                 fileStream.Position = 0;
                 var result = await blobClient.UploadAsync(fileStream);
                 
-                return result is not null ? filename : null;
+                return 
+                    result is not null 
+                        ? Outcome<string>.FromSuccess(filename) 
+                        : Outcome<string>.FromError(
+                            $"Error uploading file from stream. Filename: {filename}");
             }
             catch (Exception e)
             {
-                _logger.LogError($"Error uploading file from stream. Filename: {filename}", e);
-                return null;
+                var errorMessage = $"Error uploading file from stream. Filename: {filename}";
+                _logger.LogError(errorMessage, e);
+                return Outcome<string>.FromError(errorMessage, e);
             }
         }
 
-        public Task<string?> Upload(string filename, byte[] bytes) =>
+        public Task<Outcome<string>> Upload(string filename, byte[] bytes) =>
             Upload(filename, new MemoryStream(bytes));
 
-        public async Task<string?> Upload(string filename, string uploadFilePath)
+        public async Task<Outcome<string>> Upload(string filename, string uploadFilePath)
         {
             try
             {
@@ -72,8 +79,9 @@ namespace XMemes.Data.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error uploading file {uploadFilePath} as {filename}", ex);
-                return null;
+                var errorMessage = $"Error uploading file {uploadFilePath} as {filename}";
+                _logger.LogError(errorMessage, ex);
+                return Outcome<string>.FromError(errorMessage, ex);
             }
         }
 
@@ -115,10 +123,12 @@ namespace XMemes.Data.Repositories
             return files;
         }
 
-        public async Task<bool> Delete(string filename)
+        public async Task<Outcome<object>> Delete(string filename)
         {
             var response = await _containerClient.DeleteBlobIfExistsAsync(filename);
-            return response?.Value ?? false;
+            return response?.Value is not null
+                ? Outcome<object>.FromSuccess(true, "Successful Deletion")
+                : Outcome<object>.FromError("Deletion Failed");
         }
     }
 }

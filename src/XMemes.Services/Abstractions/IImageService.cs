@@ -1,18 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using XMemes.Models.Operations;
 
 namespace XMemes.Services.Abstractions
 {
     public interface IImageService
     {
-        Task<string?> GetUrl(string filename);
+        Task<Outcome<string>> GetUrl(string filename);
         
-        Task<string?> Upload(string filename, Stream fileStream);
+        Task<Outcome<string>> Upload(string filename, Stream fileStream);
 
-        Task<string?> Upload(string filename, byte[] bytes);
+        Task<Outcome<string>> Upload(string filename, byte[] bytes);
 
-        Task<string?> Upload(string filename, string uploadFilePath);
+        Task<Outcome<string>> Upload(string filename, string uploadFilePath);
 
         Task<FileInfo?> Download(string filename);
 
@@ -20,6 +21,6 @@ namespace XMemes.Services.Abstractions
 
         Task<IList<string>> GetAllFilenames();
 
-        Task<bool> Delete(string filename);
+        Task<Outcome<object>> Delete(string filename);
     }
 }

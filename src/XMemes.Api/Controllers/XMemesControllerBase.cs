@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using XMemes.Models.InputModels;
+using XMemes.Models.Operations;
 using XMemes.Models.ViewModels;
 using XMemes.Services.Abstractions;
 
@@ -58,7 +59,7 @@ namespace XMemes.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] TInput input)
+        public async Task<ActionResult<TViewModel>> Post([FromBody] TInput input)
         {
             if (!ModelState.IsValid)
             {
@@ -72,16 +73,14 @@ namespace XMemes.Api.Controllers
                 return BadRequest(errors);
             }
 
-            if (await Service.Insert(input))
-            {
-                return Ok();
-            }
-
-            return BadRequest();
+            var outcome = await Service.Insert(input);
+            return outcome.IsSuccess 
+                ? (ActionResult) Ok(outcome.Value) 
+                : BadRequest(outcome.Message);
         }
 
         [HttpPut]
-        public async Task<ActionResult> Put([FromBody] TInput input)
+        public async Task<ActionResult<TViewModel>> Put([FromBody] TInput input)
         {
             if (!ModelState.IsValid)
             {
@@ -101,23 +100,23 @@ namespace XMemes.Api.Controllers
             if (!await Service.Exists(guid))
                 return NotFound("The item to be updated was not found.");
 
-            if (await Service.Update(input))
+            var outcome = await Service.Update(input);
+            if (outcome.IsSuccess)
             {
-                return Ok();
+                return Ok(outcome.Value);
             }
-            return BadRequest();
+            return BadRequest(outcome.Message);
         }
 
         [HttpDelete]
-        public async Task<ActionResult<bool>> Delete(string id)
+        public async Task<ActionResult<TViewModel>> Delete(string id)
         {
             var isValidId = Guid.TryParse(id, out var guid);
-            if (!isValidId)
-            {
-                return BadRequest("The ID parameter is not a valid Guid");
-            }
+            if (!isValidId) return BadRequest("The ID parameter is not a valid Guid");
 
-            return await Service.Delete(guid);
+            var outcome = await Service.Delete(guid);
+            if (outcome.IsSuccess) return outcome.Value!;
+            else return BadRequest(outcome.Message);
         }
     }
 }

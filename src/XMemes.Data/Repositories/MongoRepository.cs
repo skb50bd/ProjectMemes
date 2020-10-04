@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using MongoDB.Driver.Linq;
 using XMemes.Models;
 using XMemes.Models.Domain;
+using XMemes.Models.Operations;
 using XMemes.Models.Paging;
 
 using Tag = XMemes.Models.Domain.Tag;
@@ -153,11 +154,12 @@ namespace XMemes.Data.Repositories
             return await ordered.ToPagedList(pageIndex, pageSize);
         }
 
-        public virtual async Task<bool> Insert(T item)
+        public virtual async Task<Outcome<T>> Insert(T item)
         {
             try
             {
                 await Collection.InsertOneAsync(item);
+                return Outcome<T>.FromSuccess(item);
             }
             catch (Exception e)
             {
@@ -165,40 +167,41 @@ namespace XMemes.Data.Repositories
                 Logger.LogError("Error inserting document.\n Item: {0}. \n{1}",
                     json,
                     e.Message);
-                return false;
+                return Outcome<T>.FromError("Error inserting document", e);
             }
-
-            return true;
         }
-
 
         public virtual System.Linq.IQueryable<T> GetQueryable() =>
             Collection.AsQueryable();
 
-        public virtual async Task<bool> Update(T item)
+        public virtual async Task<Outcome<T>> Update(T item)
         {
             try
             {
                 var result =
                     await Collection.ReplaceOneAsync(i => i.Id == item.Id, item);
 
-                return result.IsAcknowledged && result.IsModifiedCountAvailable;
+                return result.IsAcknowledged && result.IsModifiedCountAvailable
+                    ? Outcome<T>.FromSuccess(item) 
+                    : throw new Exception("Error updating document");
             }
             catch (Exception e)
             {
                 var json = item.ToJson();
                 Logger.LogError("Error updating document. \n{0}\n{1}", json, e.Message);
-                return false;
+                return Outcome<T>.FromError("Error updating document", e);
             }
         }
 
-        public virtual async Task<bool> Delete(T item)
+        public virtual async Task<Outcome<T>> Delete(T item)
         {
             try
             {
                 var result =
                     await Collection.DeleteOneAsync(i => i.Id == item.Id);
-                return result.IsAcknowledged && result.DeletedCount > 0;
+                return result.IsAcknowledged && result.DeletedCount > 0
+                    ? Outcome<T>.FromSuccess(item) 
+                    : throw new Exception("Error deleting document.");
             }
             catch (Exception e)
             {
@@ -206,7 +209,7 @@ namespace XMemes.Data.Repositories
                     "Error deleting document. \n{0}\n{1}",
                     item.ToJson(),
                     e.Message);
-                return false;
+                return Outcome<T>.FromError("Error deleting document.", e);
             }
         }
 

@@ -22,9 +22,9 @@ namespace XMemes.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<string>> GetById(string id)
         {
-            var url = await _imageService.GetUrl(id);
-            if (url is null) return NotFound();
-            return url;
+            var outcome = await _imageService.GetUrl(id);
+            if (outcome.IsError) return NotFound();
+            return outcome.Value!;
         }
 
         [HttpPost]
@@ -38,19 +38,19 @@ namespace XMemes.Api.Controllers
             
             await using var stream = new MemoryStream();
             await image.CopyToAsync(stream);
-            var filename = await _imageService.Upload(uniqueFilename, stream);
+            var outcome = await _imageService.Upload(uniqueFilename, stream);
             stream.Close();
 
-            if (filename is null) return BadRequest("Could not upload the file");
-            return Ok(filename);
+            if (outcome.IsError) return BadRequest(outcome.Message);
+            return Ok(outcome.Message);
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(string id)
         {
-            var success = await _imageService.Delete(id);
-            if (success) return Ok();
-            return BadRequest();
+            var outcome = await _imageService.Delete(id);
+            if (outcome.IsError) return Ok(outcome.Message);
+            return BadRequest(outcome.Message);
         }
     }
 }
